@@ -1,0 +1,19 @@
+{
+  "name": "freelance-portfolio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Personal portfolio web app (Fastify API + Next.js) showcasing backend & AI systems work.",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace apps/api & npm run dev --workspace apps/web",
+    "dev:api": "npm run dev --workspace apps/api",
+    "dev:web": "npm run dev --workspace apps/web",
+    "build": "npm run build --workspace apps/api && npm run build --workspace apps/web",
+    "test": "npm run test --workspace apps/api"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
