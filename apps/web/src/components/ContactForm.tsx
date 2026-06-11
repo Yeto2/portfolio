@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { PUBLIC_API_URL } from '@/lib/api';
 
 type Status = 'idle' | 'submitting' | 'success' | 'error';
 
@@ -18,7 +17,7 @@ export default function ContactForm() {
     const data = Object.fromEntries(new FormData(form).entries());
 
     try {
-      const res = await fetch(`${PUBLIC_API_URL}/api/contact`, {
+      const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),

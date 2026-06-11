@@ -1,8 +1,10 @@
-// Server-side fetches use API_URL (internal/container hostname when dockerized);
-// the browser uses NEXT_PUBLIC_API_URL.
-const SERVER_BASE = process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+// On Vercel (or when env vars are unset) the Next.js route handlers under /api/*
+// serve the same contract as the standalone Fastify app — use same-origin fetches.
+// Docker/Render set API_URL / NEXT_PUBLIC_API_URL to the external API host.
+const SERVER_BASE =
+  process.env.API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? '';
 
-export const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+export const PUBLIC_API_URL = process.env.NEXT_PUBLIC_API_URL ?? '';
 
 export interface Profile {
   name: string;
