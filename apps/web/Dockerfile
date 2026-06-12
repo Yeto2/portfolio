@@ -1,5 +1,5 @@
 # --- build stage ---
-FROM node:22-alpine AS build
+FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json* ./
 COPY apps/web/package.json ./apps/web/
@@ -9,7 +9,7 @@ ENV DOCKER_BUILD=1
 RUN npm run build --workspace apps/web
 
 # --- runtime stage (Next.js standalone) ---
-FROM node:22-alpine AS runtime
+FROM node:24-alpine AS runtime
 ENV NODE_ENV=production
 WORKDIR /app
 COPY --from=build /app/apps/web/.next/standalone ./
