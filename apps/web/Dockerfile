@@ -5,6 +5,7 @@ COPY package.json package-lock.json* ./
 COPY apps/web/package.json ./apps/web/
 RUN npm install --workspace apps/web --include=dev
 COPY apps/web ./apps/web
+ENV DOCKER_BUILD=1
 RUN npm run build --workspace apps/web
 
 # --- runtime stage (Next.js standalone) ---
