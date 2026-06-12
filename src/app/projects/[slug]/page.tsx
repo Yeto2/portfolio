@@ -44,23 +44,22 @@ export default async function ProjectPage({
   return (
     <>
       <NavBar name={profile.name} />
-      <main className="px-6 pb-24 pt-28">
-        <div className="mx-auto max-w-4xl">
+      <main className="px-5 pb-24 pt-28 sm:px-6">
+        <div className="mx-auto max-w-3xl">
           <Link
             href="/#projects"
-            className="inline-flex items-center gap-2 text-sm text-blue-400 transition hover:text-blue-300"
+            className="link-underline inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
             Back to projects
           </Link>
 
-          {/* Hero */}
-          <header className="mt-8">
-            <Badge>{project.demo}</Badge>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+          <header className="mt-10 border-b border-white/[0.06] pb-10">
+            <Badge variant="live">{project.demo}</Badge>
+            <h1 className="mt-5 font-display text-[clamp(2rem,5vw,3.25rem)] leading-[1.08] text-white">
               {project.name}
             </h1>
-            <p className="mt-3 text-lg text-blue-300/90">{project.tagline}</p>
+            <p className="mt-4 text-lg text-blue-300/75">{project.tagline}</p>
             <div className="mt-5 flex flex-wrap gap-2">
               {project.stack.map((s) => (
                 <Pill key={s} accent>{s}</Pill>
@@ -84,7 +83,7 @@ export default async function ProjectPage({
             )}
           </header>
 
-          <p className="mt-10 text-lg leading-relaxed text-slate-300">{project.summary}</p>
+          <p className="mt-10 text-[1.0625rem] leading-[1.8] text-slate-300">{project.summary}</p>
 
           {/* Features + Results grid */}
           <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -233,8 +232,8 @@ export default async function ProjectPage({
 
 function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="mt-12">
-      <h2 className="mb-4 text-xl font-bold text-white">{title}</h2>
+    <section className="mt-14">
+      <h2 className="mb-5 font-display text-2xl text-white">{title}</h2>
       {children}
     </section>
   );

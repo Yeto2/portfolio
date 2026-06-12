@@ -1,76 +1,84 @@
 'use client';
 
-import { MapPin, Clock, Target } from 'lucide-react';
+import { MapPin, Clock, Layers } from 'lucide-react';
 import type { Profile } from '@/data/content';
 import { processSteps } from '@/data/content';
 import { Section, SectionHeader, GlassCard } from '@/components/ui';
 import { FadeIn, StaggerContainer, StaggerItem } from '@/components/motion/FadeIn';
 
+const meta = [
+  { icon: MapPin, label: 'Location', value: (p: Profile) => p.location, color: 'text-blue-400', bg: 'bg-blue-500/10' },
+  { icon: Clock, label: 'Availability', value: (p: Profile) => p.availability, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+  { icon: Layers, label: 'Focus', value: () => 'Full Stack · SaaS · Real-Time · AI', color: 'text-red-400/90', bg: 'bg-red-500/10' },
+];
+
 export default function About({ profile }: { profile: Profile }) {
   return (
-    <Section id="about">
+    <Section id="about" divider={false}>
       <FadeIn>
         <SectionHeader
+          index="01"
           eyebrow="About"
-          title="Engineering with purpose"
-          description="I combine full stack expertise with a product-minded approach — shipping systems that are fast, secure, and built to last."
+          title="Engineering with intent"
+          description="Full stack expertise with a product mindset — systems that are fast, secure, and built for teams to extend."
         />
       </FadeIn>
 
-      <div className="grid gap-8 lg:grid-cols-5">
-        <FadeIn className="lg:col-span-3" delay={0.1}>
-          <div className="space-y-5">
+      <div className="grid gap-10 lg:grid-cols-12 lg:gap-12">
+        <FadeIn className="lg:col-span-7" delay={0.08}>
+          <div className="space-y-6">
             {profile.bio.map((p, i) => (
-              <p key={i} className="text-base leading-relaxed text-slate-300 lg:text-lg">
+              <p
+                key={i}
+                className={`leading-[1.8] text-slate-300 ${
+                  i === 0 ? 'text-lg text-slate-200' : 'text-[0.9375rem]'
+                }`}
+              >
                 {p}
               </p>
             ))}
           </div>
         </FadeIn>
 
-        <FadeIn className="lg:col-span-2" delay={0.2}>
-          <GlassCard className="space-y-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-500/10 text-blue-400">
-                <MapPin className="h-5 w-5" />
+        <FadeIn className="lg:col-span-5" delay={0.14}>
+          <GlassCard padding="none" className="divide-y divide-white/[0.06]">
+            {meta.map(({ icon: Icon, label, value, color, bg }) => (
+              <div key={label} className="flex items-center gap-4 p-5 sm:p-6">
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${bg} ${color}`}>
+                  <Icon className="h-[1.125rem] w-[1.125rem]" />
+                </div>
+                <div>
+                  <p className="text-[0.6875rem] font-medium uppercase tracking-wider text-slate-600">
+                    {label}
+                  </p>
+                  <p className="mt-0.5 text-sm font-medium text-white">{value(profile)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-slate-500">Location</p>
-                <p className="font-medium text-white">{profile.location}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-400">
-                <Clock className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Availability</p>
-                <p className="font-medium text-white">{profile.availability}</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-red-500/10 text-red-400">
-                <Target className="h-5 w-5" />
-              </div>
-              <div>
-                <p className="text-sm text-slate-500">Focus</p>
-                <p className="font-medium text-white">Full Stack · SaaS · Real-Time · AI</p>
-              </div>
-            </div>
+            ))}
           </GlassCard>
         </FadeIn>
       </div>
 
-      {/* Process timeline */}
-      <FadeIn className="mt-20" delay={0.15}>
-        <h3 className="mb-8 text-xl font-semibold text-white">How we work together</h3>
-        <StaggerContainer className="grid gap-6 md:grid-cols-3">
-          {processSteps.map((step) => (
+      <FadeIn className="mt-20 sm:mt-24" delay={0.1}>
+        <div className="mb-10 flex items-end justify-between gap-4">
+          <h3 className="font-display text-2xl text-white">How we work</h3>
+          <span className="hidden text-[0.6875rem] uppercase tracking-widest text-slate-600 sm:block">
+            Process
+          </span>
+        </div>
+        <StaggerContainer className="grid gap-4 md:grid-cols-3 md:gap-5" stagger={0.1}>
+          {processSteps.map((step, i) => (
             <StaggerItem key={step.n}>
               <GlassCard hover className="relative h-full">
-                <span className="font-mono text-sm font-bold text-blue-400">{step.n}</span>
-                <h4 className="mt-3 text-lg font-semibold text-white">{step.title}</h4>
-                <p className="mt-2 text-sm leading-relaxed text-slate-400">{step.desc}</p>
+                <span className="font-mono text-xs font-semibold text-blue-400/80">{step.n}</span>
+                {i < processSteps.length - 1 && (
+                  <span
+                    className="absolute right-0 top-8 hidden h-px w-8 bg-gradient-to-r from-white/10 to-transparent md:block"
+                    aria-hidden
+                  />
+                )}
+                <h4 className="mt-4 font-display text-xl text-white">{step.title}</h4>
+                <p className="mt-3 text-sm leading-relaxed text-slate-400">{step.desc}</p>
               </GlassCard>
             </StaggerItem>
           ))}

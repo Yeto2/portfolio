@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
+import { Inter, Instrument_Serif } from 'next/font/google';
 import './globals.css';
 import { AmbientBackground } from '@/components/background/AmbientBackground';
 import { profile } from '@/data/content';
@@ -9,6 +9,13 @@ const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',
+});
+
+const instrument = Instrument_Serif({
+  subsets: ['latin'],
+  weight: '400',
+  display: 'swap',
+  variable: '--font-instrument',
 });
 
 export const metadata: Metadata = {
@@ -44,8 +51,8 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={inter.variable}>
-      <body className={`${inter.className} min-h-screen antialiased`}>
+    <html lang="en" className={`${inter.variable} ${instrument.variable}`}>
+      <body className={`${inter.className} grain min-h-screen antialiased`}>
         <AmbientBackground />
         {children}
       </body>
