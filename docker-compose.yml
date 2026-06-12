@@ -2,7 +2,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: apps/web/Dockerfile
+      dockerfile: Dockerfile
     environment:
       NODE_ENV: production
       HOSTNAME: 0.0.0.0

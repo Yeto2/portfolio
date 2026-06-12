@@ -1,10 +1,28 @@
+# Dependencies
 node_modules/
-dist/
+.pnp
+.pnp.js
+
+# Next.js
 .next/
 out/
-*.log
+
+# Env
 .env
 .env.local
-data/*.sqlite
-data/*.sqlite-*
+.env*.local
+
+# Debug
+npm-debug.log*
+
+# OS
 .DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Legacy monorepo (removed)
+apps/
