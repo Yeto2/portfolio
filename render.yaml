@@ -1,30 +1,12 @@
 services:
-  # --- Backend (Fastify API, Docker) ---
-  - type: web
-    name: yeto2-portfolio-api
-    runtime: docker
-    plan: free
-    dockerfilePath: ./apps/api/Dockerfile
-    dockerContext: .
-    healthCheckPath: /health/live
-    envVars:
-      - key: CORS_ORIGINS
-        value: https://yeto2-portfolio-web.onrender.com
-      - key: CONTACT_RATE_MAX
-        value: "5"
-
-  # --- Frontend (Next.js, native Node) ---
   - type: web
     name: yeto2-portfolio-web
-    runtime: node
+    runtime: docker
     plan: free
-    rootDir: apps/web
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
-      - key: NEXT_PUBLIC_API_URL
-        value: https://yeto2-portfolio-api.onrender.com
-      - key: API_URL
-        value: https://yeto2-portfolio-api.onrender.com
       - key: NODE_VERSION
-        value: "22"
+        value: "24"
+      - key: NEXT_PUBLIC_SITE_URL
+        value: https://yeto2-portfolio-web.onrender.com

@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { AmbientBackground } from '@/components/background/AmbientBackground';
 import { profile } from '@/data/content';
+import { getSiteUrl } from '@/lib/site';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -11,6 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getSiteUrl()),
   title: `${profile.name} — ${profile.role}`,
   description: profile.tagline,
   keywords: [

@@ -24,5 +24,8 @@ Thumbs.db
 .vscode/
 *.swp
 
+# TypeScript
+*.tsbuildinfo
+
 # Legacy monorepo (removed)
 apps/
