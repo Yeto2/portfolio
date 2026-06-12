@@ -1,16 +1,50 @@
 import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
 import './globals.css';
+import { AmbientBackground } from '@/components/background/AmbientBackground';
+import { profile } from '@/data/content';
+
+const inter = Inter({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
+});
 
 export const metadata: Metadata = {
-  title: 'Senior Backend & AI Systems Engineer | Portfolio',
-  description:
-    'Production backends, real-time systems, SaaS platforms, and AI integrations. Node.js, PostgreSQL, Stripe, WebSockets, RAG.',
+  title: `${profile.name} — ${profile.role}`,
+  description: profile.tagline,
+  keywords: [
+    'Full Stack Developer',
+    'Frontend Developer',
+    'Backend Developer',
+    'WordPress Developer',
+    'WooCommerce Developer',
+    'Shopify Developer',
+    'Node.js',
+    'React',
+    'Next.js',
+    'TypeScript',
+  ],
+  authors: [{ name: profile.name }],
+  openGraph: {
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.tagline,
+    type: 'website',
+    locale: 'en_US',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: `${profile.name} — ${profile.role}`,
+    description: profile.tagline,
+  },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body className="min-h-screen antialiased selection:bg-indigo-500/30">
+    <html lang="en" className={inter.variable}>
+      <body className={`${inter.className} min-h-screen antialiased`}>
+        <AmbientBackground />
         {children}
       </body>
     </html>

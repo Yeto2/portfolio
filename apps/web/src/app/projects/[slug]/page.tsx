@@ -1,189 +1,261 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { getProject, getProfile } from '@/lib/api';
-import { Pill, Card, MethodBadge } from '@/components/ui';
-import { Icon, CheckIcon, ChevronIcon, ArrowRightIcon, ArrowUpRightIcon, GithubIcon } from '@/components/icons';
-import NavBar from '@/components/NavBar';
+import type { Metadata } from 'next';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Github,
+  CheckCircle,
+  AlertTriangle,
+  Trophy,
+} from 'lucide-react';
+import NavBar from '@/components/layout/NavBar';
+import Footer from '@/components/layout/Footer';
+import { profile, projects, getProject } from '@/data/content';
+import { GlassCard, Pill, Button, Badge } from '@/components/ui';
 
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+export function generateStaticParams() {
+  return projects.map((p) => ({ slug: p.slug }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}): Promise<Metadata> {
   const { slug } = await params;
-  const [project, profile] = await Promise.all([getProject(slug), getProfile()]);
+  const project = getProject(slug);
+  if (!project) return { title: 'Project not found' };
+  return {
+    title: `${project.name} — Case Study`,
+    description: project.summary,
+  };
+}
+
+export default async function ProjectPage({
+  params,
+}: {
+  params: Promise<{ slug: string }>;
+}) {
+  const { slug } = await params;
+  const project = getProject(slug);
   if (!project) notFound();
 
   return (
     <>
       <NavBar name={profile.name} />
-      <main className="mx-auto max-w-4xl px-6 py-16">
-        <Link
-          href="/#projects"
-          className="group inline-flex items-center gap-1.5 text-sm text-indigo-400 hover:text-indigo-300"
-        >
-          <ChevronIcon className="h-4 w-4 rotate-180" />
-          Back to projects
-        </Link>
+      <main className="px-6 pb-24 pt-28">
+        <div className="mx-auto max-w-4xl">
+          <Link
+            href="/#projects"
+            className="inline-flex items-center gap-2 text-sm text-blue-400 transition hover:text-blue-300"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to projects
+          </Link>
 
-        <div className="mt-6 inline-flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-400/20 bg-indigo-500/10 text-indigo-300">
-          <Icon name={project.icon} className="h-7 w-7" />
-        </div>
-        <h1 className="mt-4 text-4xl font-bold tracking-tight text-white">{project.name}</h1>
-        <p className="mt-2 text-lg text-indigo-300">{project.tagline}</p>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          {project.stack.map((s) => (
-            <Pill key={s}>{s}</Pill>
-          ))}
-        </div>
-
-        {project.demo && (
-          <p className="mt-6 flex items-center gap-2 rounded-lg border border-emerald-400/15 bg-emerald-500/[0.06] px-4 py-2.5 text-sm text-emerald-300/90">
-            <span className="h-2 w-2 shrink-0 rounded-full bg-emerald-400" />
-            {project.demo}
-          </p>
-        )}
-
-        {(project.liveUrl || project.repoUrl) && (
-          <div className="mt-5 flex flex-wrap gap-3">
-            {project.liveUrl && (
-              <a
-                href={project.liveUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-indigo-400"
-              >
-                View live demo
-                <ArrowUpRightIcon className="h-4 w-4" />
-              </a>
-            )}
-            {project.repoUrl && (
-              <a
-                href={project.repoUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-lg border border-white/15 px-4 py-2 text-sm font-semibold text-zinc-200 transition-colors hover:bg-white/5"
-              >
-                <GithubIcon className="h-4 w-4" />
-                View source code
-              </a>
-            )}
-          </div>
-        )}
-
-        <p className="mt-8 leading-relaxed text-zinc-300">{project.summary}</p>
-
-        {/* Features + highlights */}
-        <div className="mt-10 grid gap-6 md:grid-cols-2">
-          <Card>
-            <h2 className="text-lg font-semibold text-white">Key features</h2>
-            <ul className="mt-4 space-y-2">
-              {project.features.map((f) => (
-                <li key={f} className="flex gap-2 text-sm text-zinc-300">
-                  <CheckIcon className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
-                  <span>{f}</span>
-                </li>
+          {/* Hero */}
+          <header className="mt-8">
+            <Badge>{project.demo}</Badge>
+            <h1 className="mt-4 text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
+              {project.name}
+            </h1>
+            <p className="mt-3 text-lg text-blue-300/90">{project.tagline}</p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {project.stack.map((s) => (
+                <Pill key={s} accent>{s}</Pill>
               ))}
-            </ul>
-          </Card>
-          <Card>
-            <h2 className="text-lg font-semibold text-white">Engineering highlights</h2>
-            <ul className="mt-4 space-y-2">
-              {project.highlights.map((h) => (
-                <li key={h} className="flex gap-2 text-sm text-zinc-300">
-                  <ArrowRightIcon className="mt-0.5 h-4 w-4 shrink-0 text-indigo-400" />
-                  <span>{h}</span>
-                </li>
-              ))}
-            </ul>
-          </Card>
-        </div>
-
-        {/* Architecture */}
-        <SectionHeading>Architecture</SectionHeading>
-        <Card>
-          <p className="leading-relaxed text-zinc-300">{project.architecture}</p>
-        </Card>
-
-        {/* Database schema */}
-        <SectionHeading>Database schema</SectionHeading>
-        <div className="grid gap-4 sm:grid-cols-2">
-          {project.schema.map((t) => (
-            <Card key={t.name}>
-              <p className="font-mono text-sm font-semibold text-indigo-300">{t.name}</p>
-              <p className="mt-1 text-xs text-zinc-400">{t.purpose}</p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {t.columns.map((c) => (
-                  <span
-                    key={c}
-                    className="rounded bg-white/5 px-2 py-0.5 font-mono text-[11px] text-zinc-400"
-                  >
-                    {c}
-                  </span>
-                ))}
+            </div>
+            {(project.liveUrl || project.repoUrl) && (
+              <div className="mt-6 flex flex-wrap gap-3">
+                {project.liveUrl && (
+                  <Button href={project.liveUrl} variant="primary" external>
+                    Live demo
+                    <ArrowUpRight className="h-4 w-4" />
+                  </Button>
+                )}
+                {project.repoUrl && (
+                  <Button href={project.repoUrl} variant="secondary" external>
+                    <Github className="h-4 w-4" />
+                    Source code
+                  </Button>
+                )}
               </div>
-            </Card>
-          ))}
-        </div>
+            )}
+          </header>
 
-        {/* API design */}
-        <SectionHeading>API design</SectionHeading>
-        <div className="space-y-5">
-          {project.apiGroups.map((g) => (
-            <Card key={g.group}>
-              <p className="text-sm font-semibold text-white">{g.group}</p>
-              <ul className="mt-3 space-y-2">
-                {g.routes.map((r) => (
-                  <li key={`${r.method}${r.path}`} className="flex items-start gap-3 text-sm">
-                    <MethodBadge method={r.method} />
-                    <code className="font-mono text-zinc-200">{r.path}</code>
-                    <span className="text-zinc-500">— {r.desc}</span>
+          <p className="mt-10 text-lg leading-relaxed text-slate-300">{project.summary}</p>
+
+          {/* Features + Results grid */}
+          <div className="mt-12 grid gap-6 md:grid-cols-2">
+            <GlassCard>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+                <CheckCircle className="h-5 w-5 text-blue-400" />
+                Key features
+              </h2>
+              <ul className="mt-4 space-y-2.5">
+                {project.features.map((f) => (
+                  <li key={f} className="flex gap-2 text-sm text-slate-300">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
+                    {f}
                   </li>
                 ))}
               </ul>
-            </Card>
-          ))}
-        </div>
-
-        {/* Real-time events (only if present) */}
-        {project.realtime.length > 0 && (
-          <>
-            <SectionHeading>Real-time events</SectionHeading>
-            <Card>
-              <ul className="space-y-3">
-                {project.realtime.map((e) => (
-                  <li key={e.name} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-                    <span
-                      className={`rounded px-1.5 py-0.5 font-mono text-[11px] ${
-                        e.direction === 'in'
-                          ? 'bg-sky-500/15 text-sky-300'
-                          : 'bg-fuchsia-500/15 text-fuchsia-300'
-                      }`}
-                    >
-                      {e.direction === 'in' ? 'client → server' : 'server → client'}
-                    </span>
-                    <code className="font-mono font-semibold text-indigo-300">{e.name}</code>
-                    <code className="font-mono text-xs text-zinc-500">{e.payload}</code>
-                    <span className="w-full text-zinc-400 sm:w-auto sm:flex-1">{e.desc}</span>
+            </GlassCard>
+            <GlassCard>
+              <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
+                <Trophy className="h-5 w-5 text-emerald-400" />
+                Results & impact
+              </h2>
+              <ul className="mt-4 space-y-2.5">
+                {project.results.map((r) => (
+                  <li key={r} className="flex gap-2 text-sm text-slate-300">
+                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                    {r}
                   </li>
                 ))}
               </ul>
-            </Card>
-          </>
-        )}
+            </GlassCard>
+          </div>
 
-        {/* Folder structure */}
-        <SectionHeading>Folder structure</SectionHeading>
-        <Card className="overflow-x-auto">
-          <pre className="font-mono text-xs leading-relaxed text-zinc-300">{project.folders}</pre>
-        </Card>
+          {/* Challenges */}
+          <section className="mt-12">
+            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-white">
+              <AlertTriangle className="h-5 w-5 text-red-400" />
+              Challenges solved
+            </h2>
+            <div className="grid gap-4 sm:grid-cols-3">
+              {project.challenges.map((c, i) => (
+                <GlassCard key={c} hover>
+                  <span className="font-mono text-xs font-bold text-red-400/80">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{c}</p>
+                </GlassCard>
+              ))}
+            </div>
+          </section>
 
-        <p className="mt-8 text-sm text-zinc-500">
-          Full written system design (extended schema, ETA math, scaling notes):{' '}
-          <code className="text-indigo-300">{project.docPath}</code>
-        </p>
+          {/* Architecture */}
+          <SectionBlock title="Architecture">
+            <GlassCard>
+              <p className="leading-relaxed text-slate-300">{project.architecture}</p>
+            </GlassCard>
+          </SectionBlock>
+
+          {/* Highlights */}
+          <SectionBlock title="Engineering highlights">
+            <ul className="space-y-3">
+              {project.highlights.map((h) => (
+                <li key={h} className="glass rounded-xl px-5 py-4 text-sm text-slate-300">
+                  {h}
+                </li>
+              ))}
+            </ul>
+          </SectionBlock>
+
+          {/* Schema */}
+          <SectionBlock title="Database schema">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {project.schema.map((t) => (
+                <GlassCard key={t.name}>
+                  <code className="text-sm font-semibold text-blue-300">{t.name}</code>
+                  <p className="mt-1 text-xs text-slate-500">{t.purpose}</p>
+                  <div className="mt-3 flex flex-wrap gap-1.5">
+                    {t.columns.map((c) => (
+                      <span key={c} className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-slate-400">
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </GlassCard>
+              ))}
+            </div>
+          </SectionBlock>
+
+          {/* API */}
+          <SectionBlock title="API design">
+            <div className="space-y-4">
+              {project.apiGroups.map((g) => (
+                <GlassCard key={g.group}>
+                  <p className="text-sm font-semibold text-white">{g.group}</p>
+                  <ul className="mt-3 space-y-2">
+                    {g.routes.map((r) => (
+                      <li key={`${r.method}${r.path}`} className="flex flex-wrap items-baseline gap-2 text-sm">
+                        <MethodBadge method={r.method} />
+                        <code className="font-mono text-slate-200">{r.path}</code>
+                        <span className="text-slate-500">— {r.desc}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </GlassCard>
+              ))}
+            </div>
+          </SectionBlock>
+
+          {/* Realtime */}
+          {project.realtime.length > 0 && (
+            <SectionBlock title="Real-time events">
+              <GlassCard>
+                <ul className="space-y-3">
+                  {project.realtime.map((e) => (
+                    <li key={e.name} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
+                      <span
+                        className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${
+                          e.direction === 'in'
+                            ? 'bg-sky-500/15 text-sky-300'
+                            : 'bg-fuchsia-500/15 text-fuchsia-300'
+                        }`}
+                      >
+                        {e.direction === 'in' ? 'client → server' : 'server → client'}
+                      </span>
+                      <code className="font-mono font-semibold text-blue-300">{e.name}</code>
+                      <span className="text-slate-400">{e.desc}</span>
+                    </li>
+                  ))}
+                </ul>
+              </GlassCard>
+            </SectionBlock>
+          )}
+
+          {/* Folder structure */}
+          <SectionBlock title="Project structure">
+            <GlassCard className="overflow-x-auto">
+              <pre className="font-mono text-xs leading-relaxed text-slate-400">{project.folders}</pre>
+            </GlassCard>
+          </SectionBlock>
+        </div>
       </main>
+      <Footer />
     </>
   );
 }
 
-function SectionHeading({ children }: { children: React.ReactNode }) {
-  return <h2 className="mb-4 mt-12 text-2xl font-bold tracking-tight text-white">{children}</h2>;
+function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="mt-12">
+      <h2 className="mb-4 text-xl font-bold text-white">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: 'bg-emerald-500/15 text-emerald-300',
+  POST: 'bg-blue-500/15 text-blue-300',
+  PATCH: 'bg-amber-500/15 text-amber-300',
+  DELETE: 'bg-red-500/15 text-red-300',
+  WS: 'bg-fuchsia-500/15 text-fuchsia-300',
+};
+
+function MethodBadge({ method }: { method: string }) {
+  return (
+    <span
+      className={`inline-block w-12 shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-[10px] font-semibold ${
+        METHOD_COLORS[method] ?? 'bg-slate-500/15 text-slate-300'
+      }`}
+    >
+      {method}
+    </span>
+  );
 }
