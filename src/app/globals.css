@@ -20,7 +20,9 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
   --section-py: clamp(5rem, 12vw, 8rem);
   --content-max: 72rem;
-  scroll-padding-top: 5.5rem;
+  --nav-height: 5.5rem;
+  --hero-nav-gap: 2.5rem;
+  scroll-padding-top: calc(var(--nav-height, 5.5rem) + var(--hero-nav-gap));
 }
 
 html {

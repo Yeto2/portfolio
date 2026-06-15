@@ -47,6 +47,10 @@ export const metadata: Metadata = {
     description: profile.tagline,
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: [{ url: '/icon.svg', type: 'image/svg+xml' }],
+    apple: [{ url: '/apple-icon.svg', type: 'image/svg+xml' }],
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

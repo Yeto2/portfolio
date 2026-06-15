@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Mail, Github, ExternalLink, Send, CheckCircle } from 'lucide-react';
 import type { Profile } from '@/data/content';
 import { Section, SectionHeader, GlassCard, Button } from '@/components/ui';
+import { Logo } from '@/components/ui/Logo';
 import { FadeIn } from '@/components/motion/FadeIn';
 
 const socialIcons = {
@@ -49,10 +50,7 @@ export default function Contact({ profile }: { profile: Profile }) {
           <div className="space-y-6">
             <GlassCard padding="lg">
               <div className="flex items-center gap-4">
-                <div className="relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-2xl bg-blue-600 text-xl font-bold text-white shadow-[0_8px_24px_-8px_rgba(37,99,235,0.6)]">
-                  <span className="absolute inset-0 bg-gradient-to-t from-blue-700 to-blue-500" />
-                  <span className="relative font-display">{profile.name.charAt(0)}</span>
-                </div>
+                <Logo size="md" className="ring-1 ring-white/[0.06]" />
                 <div>
                   <p className="font-medium text-white">{profile.name}</p>
                   <p className="text-sm text-slate-500">{profile.role}</p>

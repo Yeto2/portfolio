@@ -1,12 +1,14 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useEffect, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import type { Profile } from '@/data/content';
 import { Button, ScrollIndicator } from '@/components/ui';
 import { FadeIn } from '@/components/motion/FadeIn';
 
 const ease = [0.16, 1, 0.3, 1] as const;
+const HERO_NAV_GAP = 40;
 
 const statusLines = [
   'Real-time infrastructure',
@@ -16,7 +18,7 @@ const statusLines = [
 
 function SystemStatusPanel() {
   return (
-    <div className="relative aspect-square w-full max-h-[520px]">
+    <div data-panel className="relative aspect-square w-full max-h-[520px]">
       <div className="glass absolute inset-4 rounded-3xl p-1">
         <div className="flex h-full flex-col overflow-hidden rounded-[1.35rem] bg-[#060a14]/90">
           <div className="flex items-center gap-2 border-b border-white/[0.06] px-4 py-3">
@@ -49,7 +51,10 @@ function SystemStatusPanel() {
                   className="flex items-center justify-between rounded-lg border border-white/[0.05] bg-white/[0.02] px-3 py-2.5"
                 >
                   <span className="text-xs text-slate-400">{line}</span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
+                  <span className="relative flex h-1.5 w-1.5">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400/40" />
+                    <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
+                  </span>
                 </motion.div>
               ))}
             </div>
@@ -75,17 +80,77 @@ export default function Hero({
   profile: Profile;
   services: string[];
 }) {
+  const boundaryRef = useRef<HTMLDivElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [trackHeight, setTrackHeight] = useState<number | null>(null);
+  const [panelOffset, setPanelOffset] = useState(0);
+  const reducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const boundary = boundaryRef.current;
+    const cta = ctaRef.current;
+    const panel = panelRef.current;
+    if (!boundary || !cta || !panel) return;
+
+    let raf = 0;
+
+    const update = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const boundaryEl = boundaryRef.current;
+        const ctaEl = ctaRef.current;
+        const panelEl = panelRef.current;
+        if (!boundaryEl || !ctaEl || !panelEl) return;
+
+        setTrackHeight(boundaryEl.offsetHeight);
+
+        if (reducedMotion) {
+          setPanelOffset(0);
+          return;
+        }
+
+        const navHeight = parseFloat(
+          getComputedStyle(document.documentElement).getPropertyValue('--nav-height'),
+        ) || 80;
+        const pinTop = navHeight + HERO_NAV_GAP;
+
+        const boundaryRect = boundaryEl.getBoundingClientRect();
+        const ctaRect = ctaEl.getBoundingClientRect();
+        const panelHeight = panelEl.offsetHeight;
+
+        const maxOffset = Math.max(ctaRect.bottom - boundaryRect.top - panelHeight, 0);
+        const nextOffset = Math.min(Math.max(pinTop - boundaryRect.top, 0), maxOffset);
+
+        setPanelOffset(nextOffset);
+      });
+    };
+
+    update();
+    window.addEventListener('scroll', update, { passive: true });
+    window.addEventListener('resize', update);
+
+    const ro = new ResizeObserver(update);
+    ro.observe(boundary);
+    ro.observe(cta);
+    ro.observe(panel);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener('scroll', update);
+      window.removeEventListener('resize', update);
+      ro.disconnect();
+    };
+  }, [reducedMotion]);
+
   return (
-    <header className="relative flex min-h-[100dvh] flex-col px-5 pb-12 pt-28 sm:px-6 lg:pt-32">
+    <header
+      className="relative flex min-h-[100dvh] flex-col px-5 pb-12 sm:px-6"
+      style={{ paddingTop: 'calc(var(--nav-height, 5.5rem) + 2.5rem)' }}
+    >
       <div className="mx-auto flex w-full max-w-[var(--content-max)] flex-1 flex-col">
-        {/*
-          Grid row height = left column (copy → buttons).
-          Right column stretches to match; sticky panel follows scroll
-          until the row ends at the buttons.
-        */}
-        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-stretch lg:gap-16">
-          {/* Copy — defines sticky scroll boundary */}
-          <div className="flex flex-col">
+        <div className="grid gap-12 lg:grid-cols-[1.1fr_0.9fr] lg:items-start lg:gap-16">
+          <div ref={boundaryRef} className="flex flex-col">
             <FadeIn>
               <div className="mb-8 inline-flex items-center gap-3 rounded-full border border-white/[0.08] bg-white/[0.03] py-1.5 pl-1.5 pr-4 backdrop-blur-sm">
                 <span className="rounded-full bg-emerald-500/15 px-2.5 py-1 text-[0.625rem] font-semibold uppercase tracking-wider text-emerald-400">
@@ -118,7 +183,7 @@ export default function Hero({
             </FadeIn>
 
             <FadeIn delay={0.22}>
-              <div id="hero-cta" className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4">
+              <div ref={ctaRef} id="hero-cta" className="mt-10 flex flex-wrap items-center gap-3 sm:gap-4">
                 <Button href="#projects" variant="primary">
                   View selected work
                   <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5" />
@@ -130,9 +195,17 @@ export default function Hero({
             </FadeIn>
           </div>
 
-          {/* Sticky panel — no transform on ancestors (breaks position:sticky) */}
-          <div className="relative hidden lg:block">
-            <div className="sticky top-28 xl:top-32">
+          <div
+            className="relative hidden lg:block"
+            style={trackHeight ? { minHeight: trackHeight } : undefined}
+          >
+            <div
+              ref={panelRef}
+              className="w-full will-change-transform"
+              style={{
+                transform: reducedMotion ? undefined : `translate3d(0, ${panelOffset}px, 0)`,
+              }}
+            >
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -144,7 +217,6 @@ export default function Hero({
           </div>
         </div>
 
-        {/* Metrics strip */}
         <FadeIn delay={0.3} className="mt-16 lg:mt-20">
           <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.04] sm:grid-cols-4">
             {profile.metrics.map((m, i) => (
@@ -163,7 +235,6 @@ export default function Hero({
           </div>
         </FadeIn>
 
-        {/* Specializations */}
         <FadeIn delay={0.38} className="mt-10">
           <p className="mb-3 text-[0.625rem] font-semibold uppercase tracking-[0.22em] text-slate-600">
             Capabilities
@@ -183,7 +254,6 @@ export default function Hero({
           </div>
         </FadeIn>
 
-        {/* Scroll cue */}
         <div className="mt-auto flex justify-center pt-16 lg:pt-20">
           <FadeIn delay={0.5}>
             <ScrollIndicator href="#about" />
