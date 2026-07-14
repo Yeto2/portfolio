@@ -1,59 +1,41 @@
 'use client';
 
-import { Layout, Server, ShoppingCart, Sparkles, Terminal } from 'lucide-react';
-import type { SkillGroup } from '@/data/content';
-import { Section, SectionHeader, GlassCard, Pill } from '@/components/ui';
-import { FadeIn, StaggerContainer, StaggerItem } from '@/components/motion/FadeIn';
+import { Section, SectionHeader } from '@/components/ui';
+import { FadeIn } from '@/components/motion/FadeIn';
 
-const iconMap = {
-  layout: Layout,
-  server: Server,
-  shopping: ShoppingCart,
-  sparkles: Sparkles,
-  terminal: Terminal,
-};
+export default function Skills({ skills }: { skills: string[] }) {
+  const loop = [...skills, ...skills];
 
-export default function Skills({ groups }: { groups: SkillGroup[] }) {
   return (
-    <Section id="skills">
+    <Section id="skills" className="!py-0 pb-[var(--section-py)] overflow-hidden">
       <FadeIn>
         <SectionHeader
           index="03"
-          eyebrow="Expertise"
-          title="Tools & technologies"
-          description="A full stack toolkit — premium frontends, production backends, e-commerce platforms, and AI integrations."
-          align="center"
+          eyebrow="Skills"
+          title="The stack behind high-end stores."
         />
       </FadeIn>
 
-      <StaggerContainer
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-5"
-        stagger={0.07}
-      >
-        {groups.map((group, i) => {
-          const Icon = iconMap[group.icon as keyof typeof iconMap] ?? Terminal;
-          return (
-            <StaggerItem key={group.category}>
-              <GlassCard hover className="group h-full">
-                <div className="mb-5 flex items-center justify-between">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/[0.06] bg-white/[0.03] text-blue-400 transition-colors duration-300 group-hover:border-blue-500/20 group-hover:bg-blue-500/[0.06]">
-                    <Icon className="h-[1.125rem] w-[1.125rem]" />
-                  </div>
-                  <span className="font-mono text-[0.625rem] text-slate-700">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                </div>
-                <h3 className="text-base font-semibold text-white">{group.category}</h3>
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {group.skills.map((s) => (
-                    <Pill key={s}>{s}</Pill>
-                  ))}
-                </div>
-              </GlassCard>
-            </StaggerItem>
-          );
-        })}
-      </StaggerContainer>
+      <FadeIn delay={0.08}>
+        <div className="relative rounded-2xl border border-blue-500/15 bg-gradient-to-b from-blue-500/[0.06] to-transparent py-8">
+          <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#050816] to-transparent sm:w-24" />
+          <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#050816] to-transparent sm:w-24" />
+
+          <div className="overflow-hidden">
+            <div className="marquee-track gap-3 px-4">
+              {loop.map((skill, i) => (
+                <span
+                  key={`${skill}-${i}`}
+                  className="inline-flex shrink-0 items-center rounded-full border border-white/[0.08] bg-[#0a0f1e]/80 px-4 py-2 text-sm text-slate-300 shadow-[0_0_0_1px_rgba(59,130,246,0.04)] transition-colors hover:border-blue-400/35 hover:text-white hover:shadow-[0_0_24px_-8px_rgba(59,130,246,0.45)]"
+                >
+                  <span className="mr-2 h-1 w-1 rounded-full bg-blue-400/80" />
+                  {skill}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      </FadeIn>
     </Section>
   );
 }

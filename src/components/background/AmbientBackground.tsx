@@ -15,27 +15,28 @@ export function AmbientBackground() {
 
   return (
     <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden>
-      <div className="bg-grid absolute inset-0 opacity-80" />
+      <div className="absolute inset-0 bg-[#050816]" />
+      <div className="bg-grid absolute inset-0 opacity-90" />
 
-      {/* Primary mesh */}
       <div
-        className={`absolute -left-[20%] -top-[30%] h-[70vh] w-[70vh] rounded-full bg-blue-600/14 blur-[140px] ${reducedMotion ? '' : 'animate-drift'}`}
+        className={`absolute -left-[25%] -top-[35%] h-[75vh] w-[75vh] rounded-full bg-blue-600/[0.12] blur-[140px] ${
+          reducedMotion ? '' : 'animate-drift'
+        }`}
       />
       <div
-        className={`absolute -right-[15%] top-[10%] h-[55vh] w-[55vh] rounded-full bg-indigo-700/10 blur-[120px] ${reducedMotion ? '' : 'animate-drift-reverse'}`}
+        className={`absolute -right-[20%] top-[5%] h-[55vh] w-[55vh] rounded-full bg-blue-500/[0.08] blur-[120px] ${
+          reducedMotion ? '' : 'animate-drift-reverse'
+        }`}
       />
-
-      {/* Accent — restrained red */}
       <div
-        className={`absolute bottom-[15%] left-[35%] h-[40vh] w-[50vh] rounded-full bg-red-600/6 blur-[100px] ${reducedMotion ? '' : 'animate-breathe'}`}
+        className={`absolute bottom-[10%] left-[30%] h-[40vh] w-[50vh] rounded-full bg-blue-400/[0.05] blur-[100px] ${
+          reducedMotion ? '' : 'animate-breathe'
+        }`}
       />
 
-      {/* Horizon glow */}
-      <div className="absolute inset-x-0 top-0 h-[50vh] bg-gradient-to-b from-blue-950/20 via-transparent to-transparent" />
-
-      {/* Vignette */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_0%,transparent_0%,#020408_100%)]" />
-      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#020408]" />
+      <div className="absolute inset-x-0 top-0 h-[55vh] bg-gradient-to-b from-blue-950/25 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-5%,transparent_0%,#050816_78%)]" />
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#050816]" />
     </div>
   );
 }

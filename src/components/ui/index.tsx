@@ -1,5 +1,61 @@
+'use client';
+
 import type { ReactNode } from 'react';
 import { MagneticLink } from '@/components/motion/MagneticLink';
+
+export function Section({
+  id,
+  children,
+  className = '',
+}: {
+  id?: string;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section
+      id={id}
+      className={`relative px-5 py-[var(--section-py)] sm:px-6 ${className}`}
+    >
+      <div className="mx-auto w-full max-w-[var(--content-max)]">{children}</div>
+    </section>
+  );
+}
+
+export function SectionHeader({
+  eyebrow,
+  title,
+  description,
+  index,
+  className = '',
+}: {
+  eyebrow: string;
+  title: string;
+  description?: string;
+  index?: string;
+  className?: string;
+}) {
+  return (
+    <div className={`mb-8 max-w-2xl lg:mb-10 ${className}`}>
+      <div className="mb-3 flex items-center gap-3">
+        {index && (
+          <span className="font-mono text-[0.6875rem] tracking-[0.2em] text-blue-400/80">
+            {index}
+          </span>
+        )}
+        <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.22em] text-slate-500">
+          {eyebrow}
+        </span>
+      </div>
+      <h2 className="font-display text-[clamp(1.85rem,4vw,2.85rem)] leading-[1.1] text-white">
+        {title}
+      </h2>
+      {description && (
+        <p className="mt-4 text-[1.05rem] leading-relaxed text-slate-400">{description}</p>
+      )}
+    </div>
+  );
+}
 
 export function GlassCard({
   children,
@@ -22,77 +78,29 @@ export function GlassCard({
   );
 }
 
-export function SectionHeader({
-  eyebrow,
-  title,
-  description,
-  align = 'left',
-  index,
+export function Badge({
+  children,
+  variant = 'default',
 }: {
-  eyebrow?: string;
-  title: string;
-  description?: string;
-  align?: 'left' | 'center';
-  index?: string;
+  children: ReactNode;
+  variant?: 'default' | 'live';
 }) {
-  const alignClass = align === 'center' ? 'mx-auto text-center items-center' : '';
-  return (
-    <div className={`mb-14 max-w-3xl flex flex-col ${alignClass}`}>
-      {eyebrow && (
-        <p className={`eyebrow mb-5 ${align === 'center' ? 'justify-center' : ''}`}>
-          {index && <span className="text-slate-600">{index}</span>}
-          {eyebrow}
-        </p>
-      )}
-      <h2 className="font-display text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.08] text-white">
-        {title}
-      </h2>
-      {description && (
-        <p className="mt-5 text-[1.0625rem] leading-[1.7] text-slate-400">{description}</p>
-      )}
-    </div>
-  );
-}
-
-export function Badge({ children, variant = 'default' }: { children: ReactNode; variant?: 'default' | 'live' }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1 text-xs font-medium ${
+      className={`inline-flex items-center rounded-lg border px-2.5 py-1 text-[0.6875rem] font-medium ${
         variant === 'live'
-          ? 'border border-emerald-500/25 bg-emerald-500/[0.07] text-emerald-400'
-          : 'border border-white/10 bg-white/[0.04] text-slate-300'
+          ? 'border-blue-500/25 bg-blue-500/10 text-blue-300'
+          : 'border-white/[0.08] bg-white/[0.03] text-slate-400'
       }`}
     >
-      {variant === 'live' && (
-        <span className="relative flex h-1.5 w-1.5">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-60" />
-          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-emerald-400" />
-        </span>
-      )}
       {children}
     </span>
   );
 }
 
-export function Pill({
-  children,
-  accent,
-  mono,
-}: {
-  children: ReactNode;
-  accent?: boolean;
-  mono?: boolean;
-}) {
+export function Pill({ children }: { children: ReactNode }) {
   return (
-    <span
-      className={`inline-flex items-center rounded-md px-2.5 py-1 text-[0.6875rem] font-medium tracking-wide ${
-        mono ? 'font-mono' : ''
-      } ${
-        accent
-          ? 'border border-blue-500/25 bg-blue-500/[0.08] text-blue-300'
-          : 'border border-white/[0.08] bg-white/[0.03] text-slate-400'
-      }`}
-    >
+    <span className="inline-flex rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-slate-400">
       {children}
     </span>
   );
@@ -102,87 +110,59 @@ export function Button({
   href,
   children,
   variant = 'primary',
-  external,
-  className = '',
+  external = false,
   magnetic = true,
+  className = '',
 }: {
   href: string;
   children: ReactNode;
   variant?: 'primary' | 'secondary' | 'ghost';
   external?: boolean;
-  className?: string;
   magnetic?: boolean;
+  className?: string;
 }) {
   const base =
     'group relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl px-6 py-3.5 text-sm font-semibold transition-colors duration-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400';
+
   const variants = {
     primary:
-      'bg-blue-600 text-white shadow-[0_1px_0_0_rgba(255,255,255,0.12)_inset,0_8px_32px_-8px_rgba(37,99,235,0.55)] hover:bg-blue-500 active:bg-blue-700',
+      'btn-shimmer bg-blue-600 text-white shadow-[0_8px_28px_-8px_rgba(59,130,246,0.65)] hover:bg-blue-500 hover:shadow-[0_10px_36px_-8px_rgba(59,130,246,0.8)]',
     secondary:
-      'glass text-white hover:border-white/20',
-    ghost: 'text-slate-400 hover:bg-white/[0.04] hover:text-white',
+      'border border-white/[0.1] bg-white/[0.03] text-white hover:border-blue-500/30 hover:bg-white/[0.05]',
+    ghost: 'text-slate-400 hover:text-white',
   };
 
-  const cls = `${base} ${variants[variant]} ${className}`;
+  const props = {
+    href,
+    className: `${base} ${variants[variant]} ${className}`,
+    ...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {}),
+  };
 
-  if (magnetic) {
+  if (magnetic && variant !== 'ghost') {
     return (
-      <MagneticLink href={href} className={cls} external={external} strength={0.18}>
-        {variant === 'primary' && (
-          <span className="pointer-events-none absolute inset-0 bg-gradient-to-t from-transparent via-white/[0.06] to-white/[0.12] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
-        )}
-        <span className="relative flex items-center gap-2">{children}</span>
+      <MagneticLink {...props} strength={0.14}>
+        {children}
       </MagneticLink>
     );
   }
 
-  const props = external ? { target: '_blank' as const, rel: 'noopener noreferrer' } : {};
-  return (
-    <a href={href} className={cls} {...props}>
-      {children}
-    </a>
-  );
-}
-
-export function Section({
-  id,
-  children,
-  className = '',
-  divider = true,
-}: {
-  id: string;
-  children: ReactNode;
-  className?: string;
-  divider?: boolean;
-}) {
-  return (
-    <section
-      id={id}
-      className={`relative px-5 sm:px-6 ${className}`}
-      style={{ paddingTop: 'var(--section-py)', paddingBottom: 'var(--section-py)' }}
-    >
-      {divider && (
-        <div className="section-divider absolute inset-x-0 top-0 mx-auto max-w-4xl" aria-hidden />
-      )}
-      <div className="mx-auto max-w-[var(--content-max)]">{children}</div>
-    </section>
-  );
+  return <a {...props}>{children}</a>;
 }
 
 export function SectionDivider() {
-  return <div className="section-divider mx-auto max-w-4xl" aria-hidden />;
+  return <div className="h-px w-full bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />;
 }
 
 export function ScrollIndicator({ href = '#about' }: { href?: string }) {
   return (
     <a
       href={href}
-      className="group flex flex-col items-center gap-3 text-slate-500 transition-colors hover:text-slate-300"
-      aria-label="Scroll to content"
+      className="group flex flex-col items-center gap-3 text-slate-600 transition-colors hover:text-slate-400"
+      aria-label="Scroll to about"
     >
-      <span className="text-[0.625rem] font-medium uppercase tracking-[0.25em]">Explore</span>
+      <span className="text-[0.625rem] font-semibold uppercase tracking-[0.2em]">Scroll</span>
       <span className="relative h-10 w-px overflow-hidden bg-white/10">
-        <span className="scroll-line absolute inset-0 bg-gradient-to-b from-blue-400 to-blue-600" />
+        <span className="absolute inset-x-0 top-0 h-1/2 animate-breathe bg-gradient-to-b from-blue-400 to-transparent" />
       </span>
     </a>
   );

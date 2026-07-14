@@ -1,18 +1,11 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
-import {
-  ArrowLeft,
-  ArrowUpRight,
-  Github,
-  CheckCircle,
-  AlertTriangle,
-  Trophy,
-} from 'lucide-react';
+import { ArrowLeft, ExternalLink, Github } from 'lucide-react';
 import NavBar from '@/components/layout/NavBar';
 import Footer from '@/components/layout/Footer';
 import { profile, projects, getProject } from '@/data/content';
-import { GlassCard, Pill, Button, Badge } from '@/components/ui';
+import { GlassCard, Badge, Button } from '@/components/ui';
 
 export function generateStaticParams() {
   return projects.map((p) => ({ slug: p.slug }));
@@ -44,217 +37,85 @@ export default async function ProjectPage({
   return (
     <>
       <NavBar name={profile.name} />
-      <main className="px-5 pb-24 pt-28 sm:px-6">
-        <div className="mx-auto max-w-3xl">
+      <main className="px-5 pb-20 pt-[calc(var(--nav-height,5.25rem)+2rem)] sm:px-6">
+        <div className="mx-auto max-w-[var(--content-max)]">
           <Link
             href="/#projects"
-            className="link-underline inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-white"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 transition-colors hover:text-white"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to projects
+            Back to work
           </Link>
 
-          <header className="mt-10 border-b border-white/[0.06] pb-10">
-            <Badge variant="live">{project.demo}</Badge>
-            <h1 className="mt-5 font-display text-[clamp(2rem,5vw,3.25rem)] leading-[1.08] text-white">
+          <div className="mt-8 max-w-2xl">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.2em] text-blue-400/80">
+              {project.category === 'commerce' ? 'E-commerce' : 'Systems'} · {project.tagline}
+            </p>
+            <h1 className="mt-3 font-display text-[clamp(2rem,4.5vw,3.25rem)] leading-[1.08] text-white">
               {project.name}
             </h1>
-            <p className="mt-4 text-lg text-blue-300/75">{project.tagline}</p>
+            <p className="mt-4 text-base leading-relaxed text-slate-400">{project.summary}</p>
+
             <div className="mt-5 flex flex-wrap gap-2">
-              {project.stack.map((s) => (
-                <Pill key={s} accent>{s}</Pill>
+              {project.stack.map((t) => (
+                <Badge key={t}>{t}</Badge>
               ))}
             </div>
-            {(project.liveUrl || project.repoUrl) && (
-              <div className="mt-6 flex flex-wrap gap-3">
-                {project.liveUrl && (
-                  <Button href={project.liveUrl} variant="primary" external>
-                    Live demo
-                    <ArrowUpRight className="h-4 w-4" />
-                  </Button>
-                )}
-                {project.repoUrl && (
-                  <Button href={project.repoUrl} variant="secondary" external>
-                    <Github className="h-4 w-4" />
-                    Source code
-                  </Button>
-                )}
-              </div>
-            )}
-          </header>
 
-          <p className="mt-10 text-[1.0625rem] leading-[1.8] text-slate-300">{project.summary}</p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              {project.liveUrl ? (
+                <Button href={project.liveUrl} variant="primary" external>
+                  Live site
+                  <ExternalLink className="h-4 w-4" />
+                </Button>
+              ) : null}
+              {project.repoUrl ? (
+                <Button href={project.repoUrl} variant="secondary" external magnetic={false}>
+                  <Github className="h-4 w-4" />
+                  GitHub
+                </Button>
+              ) : null}
+            </div>
+          </div>
 
-          {/* Features + Results grid */}
-          <div className="mt-12 grid gap-6 md:grid-cols-2">
+          <div className="mt-10 grid gap-4 lg:grid-cols-2">
             <GlassCard>
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-                <CheckCircle className="h-5 w-5 text-blue-400" />
-                Key features
-              </h2>
-              <ul className="mt-4 space-y-2.5">
+              <h2 className="font-display text-lg text-white">Problem</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-400">{project.problem}</p>
+            </GlassCard>
+            <GlassCard>
+              <h2 className="font-display text-lg text-white">Solution</h2>
+              <p className="mt-3 text-sm leading-relaxed text-slate-400">{project.solution}</p>
+            </GlassCard>
+          </div>
+
+          <div className="mt-4 grid gap-4 lg:grid-cols-2">
+            <GlassCard>
+              <h2 className="font-display text-lg text-white">Features</h2>
+              <ul className="mt-3 space-y-2">
                 {project.features.map((f) => (
-                  <li key={f} className="flex gap-2 text-sm text-slate-300">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-blue-400" />
+                  <li key={f} className="text-sm text-slate-400">
+                    <span className="mr-2 text-blue-400/70">·</span>
                     {f}
                   </li>
                 ))}
               </ul>
             </GlassCard>
             <GlassCard>
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-white">
-                <Trophy className="h-5 w-5 text-emerald-400" />
-                Results & impact
-              </h2>
-              <ul className="mt-4 space-y-2.5">
+              <h2 className="font-display text-lg text-white">Results</h2>
+              <ul className="mt-3 space-y-2">
                 {project.results.map((r) => (
-                  <li key={r} className="flex gap-2 text-sm text-slate-300">
-                    <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-emerald-400" />
+                  <li key={r} className="text-sm text-slate-400">
+                    <span className="mr-2 text-blue-400/70">·</span>
                     {r}
                   </li>
                 ))}
               </ul>
             </GlassCard>
           </div>
-
-          {/* Challenges */}
-          <section className="mt-12">
-            <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-white">
-              <AlertTriangle className="h-5 w-5 text-red-400" />
-              Challenges solved
-            </h2>
-            <div className="grid gap-4 sm:grid-cols-3">
-              {project.challenges.map((c, i) => (
-                <GlassCard key={c} hover>
-                  <span className="font-mono text-xs font-bold text-red-400/80">
-                    {String(i + 1).padStart(2, '0')}
-                  </span>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-300">{c}</p>
-                </GlassCard>
-              ))}
-            </div>
-          </section>
-
-          {/* Architecture */}
-          <SectionBlock title="Architecture">
-            <GlassCard>
-              <p className="leading-relaxed text-slate-300">{project.architecture}</p>
-            </GlassCard>
-          </SectionBlock>
-
-          {/* Highlights */}
-          <SectionBlock title="Engineering highlights">
-            <ul className="space-y-3">
-              {project.highlights.map((h) => (
-                <li key={h} className="glass rounded-xl px-5 py-4 text-sm text-slate-300">
-                  {h}
-                </li>
-              ))}
-            </ul>
-          </SectionBlock>
-
-          {/* Schema */}
-          <SectionBlock title="Database schema">
-            <div className="grid gap-4 sm:grid-cols-2">
-              {project.schema.map((t) => (
-                <GlassCard key={t.name}>
-                  <code className="text-sm font-semibold text-blue-300">{t.name}</code>
-                  <p className="mt-1 text-xs text-slate-500">{t.purpose}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
-                    {t.columns.map((c) => (
-                      <span key={c} className="rounded bg-white/5 px-2 py-0.5 font-mono text-[10px] text-slate-400">
-                        {c}
-                      </span>
-                    ))}
-                  </div>
-                </GlassCard>
-              ))}
-            </div>
-          </SectionBlock>
-
-          {/* API */}
-          <SectionBlock title="API design">
-            <div className="space-y-4">
-              {project.apiGroups.map((g) => (
-                <GlassCard key={g.group}>
-                  <p className="text-sm font-semibold text-white">{g.group}</p>
-                  <ul className="mt-3 space-y-2">
-                    {g.routes.map((r) => (
-                      <li key={`${r.method}${r.path}`} className="flex flex-wrap items-baseline gap-2 text-sm">
-                        <MethodBadge method={r.method} />
-                        <code className="font-mono text-slate-200">{r.path}</code>
-                        <span className="text-slate-500">— {r.desc}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </GlassCard>
-              ))}
-            </div>
-          </SectionBlock>
-
-          {/* Realtime */}
-          {project.realtime.length > 0 && (
-            <SectionBlock title="Real-time events">
-              <GlassCard>
-                <ul className="space-y-3">
-                  {project.realtime.map((e) => (
-                    <li key={e.name} className="flex flex-wrap items-baseline gap-x-3 gap-y-1 text-sm">
-                      <span
-                        className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${
-                          e.direction === 'in'
-                            ? 'bg-sky-500/15 text-sky-300'
-                            : 'bg-fuchsia-500/15 text-fuchsia-300'
-                        }`}
-                      >
-                        {e.direction === 'in' ? 'client → server' : 'server → client'}
-                      </span>
-                      <code className="font-mono font-semibold text-blue-300">{e.name}</code>
-                      <span className="text-slate-400">{e.desc}</span>
-                    </li>
-                  ))}
-                </ul>
-              </GlassCard>
-            </SectionBlock>
-          )}
-
-          {/* Folder structure */}
-          <SectionBlock title="Project structure">
-            <GlassCard className="overflow-x-auto">
-              <pre className="font-mono text-xs leading-relaxed text-slate-400">{project.folders}</pre>
-            </GlassCard>
-          </SectionBlock>
         </div>
       </main>
       <Footer />
     </>
-  );
-}
-
-function SectionBlock({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="mt-14">
-      <h2 className="mb-5 font-display text-2xl text-white">{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-const METHOD_COLORS: Record<string, string> = {
-  GET: 'bg-emerald-500/15 text-emerald-300',
-  POST: 'bg-blue-500/15 text-blue-300',
-  PATCH: 'bg-amber-500/15 text-amber-300',
-  DELETE: 'bg-red-500/15 text-red-300',
-  WS: 'bg-fuchsia-500/15 text-fuchsia-300',
-};
-
-function MethodBadge({ method }: { method: string }) {
-  return (
-    <span
-      className={`inline-block w-12 shrink-0 rounded px-1.5 py-0.5 text-center font-mono text-[10px] font-semibold ${
-        METHOD_COLORS[method] ?? 'bg-slate-500/15 text-slate-300'
-      }`}
-    >
-      {method}
-    </span>
   );
 }
