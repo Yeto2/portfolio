@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Mail, Github, ExternalLink, Send, CheckCircle } from 'lucide-react';
+import { Mail, Github, ExternalLink, Send, CheckCircle, Loader2 } from 'lucide-react';
 import type { Profile } from '@/data/content';
 import { Section, SectionHeader } from '@/components/ui';
 import { Logo } from '@/components/ui/Logo';
@@ -15,26 +15,47 @@ const socialIcons = {
   mail: Mail,
 };
 
-export default function Contact({ profile }: { profile: Profile }) {
-  const [sent, setSent] = useState(false);
+type Status = 'idle' | 'loading' | 'success' | 'error';
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+export default function Contact({ profile }: { profile: Profile }) {
+  const [status, setStatus] = useState<Status>('idle');
+  const [error, setError] = useState('');
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    setStatus('loading');
+    setError('');
+
     const form = e.currentTarget;
     const data = new FormData(form);
-    const name = data.get('name') as string;
-    const email = data.get('email') as string;
-    const message = data.get('message') as string;
-    const budget = data.get('budget') as string;
 
-    const subject = encodeURIComponent(`Store project inquiry from ${name}`);
-    const body = encodeURIComponent(
-      `Hi ${profile.name.split(' ')[0]},\n\n${message}\n\n— ${name}\n${email}${
-        budget ? `\nBudget: ${budget}` : ''
-      }`,
-    );
-    window.location.href = `mailto:${profile.email}?subject=${subject}&body=${body}`;
-    setSent(true);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.get('name'),
+          email: data.get('email'),
+          budget: data.get('budget'),
+          message: data.get('message'),
+          company: data.get('company'), // honeypot
+        }),
+      });
+
+      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+
+      if (!res.ok) {
+        setStatus('error');
+        setError(payload.error || 'Could not send your message. Please try again.');
+        return;
+      }
+
+      setStatus('success');
+      form.reset();
+    } catch {
+      setStatus('error');
+      setError('Network error. Check your connection and try again.');
+    }
   }
 
   return (
@@ -48,10 +69,6 @@ export default function Contact({ profile }: { profile: Profile }) {
         />
       </FadeIn>
 
-      {/*
-        Separate columns (no overflow:hidden parent) so the profile panel
-        can stick while the form column scrolls.
-      */}
       <div className="grid gap-5 lg:grid-cols-[0.85fr_1.15fr] lg:items-start lg:gap-6">
         <StickyAside className="hidden lg:block">
           <div className="glow-border relative overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-b from-blue-500/[0.12] to-[#0a0f1e] p-8 sm:p-10">
@@ -83,7 +100,6 @@ export default function Contact({ profile }: { profile: Profile }) {
           </div>
         </StickyAside>
 
-        {/* Mobile profile (non-sticky) */}
         <div className="glow-border relative overflow-hidden rounded-[1.75rem] border border-white/[0.08] bg-gradient-to-b from-blue-500/[0.12] to-[#0a0f1e] p-8 lg:hidden">
           <Logo size="md" />
           <p className="mt-6 font-display text-2xl text-white">{profile.name}</p>
@@ -109,14 +125,16 @@ export default function Contact({ profile }: { profile: Profile }) {
         </div>
 
         <div className="glow-border rounded-[1.75rem] border border-white/[0.08] bg-[#050816]/80 p-8 sm:p-10">
-          {sent ? (
+          {status === 'success' ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <CheckCircle className="mb-4 h-10 w-10 text-blue-400" />
-              <p className="font-display text-2xl text-white">Your email client is open</p>
-              <p className="mt-2 text-sm text-slate-400">Send the draft when you are ready.</p>
+              <p className="font-display text-2xl text-white">Message sent</p>
+              <p className="mt-2 max-w-sm text-sm text-slate-400">
+                Thanks — I&apos;ll reply within 24 hours.
+              </p>
               <button
                 type="button"
-                onClick={() => setSent(false)}
+                onClick={() => setStatus('idle')}
                 className="mt-6 text-sm text-blue-400 hover:text-blue-300"
               >
                 Send another
@@ -124,13 +142,24 @@ export default function Contact({ profile }: { profile: Profile }) {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Honeypot — hidden from real users */}
+              <input
+                type="text"
+                name="company"
+                tabIndex={-1}
+                autoComplete="off"
+                className="absolute left-[-9999px] h-0 w-0 opacity-0"
+                aria-hidden
+              />
+
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1.5 block text-xs text-slate-500">Name</span>
                   <input
                     name="name"
                     required
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)]"
+                    disabled={status === 'loading'}
+                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)] disabled:opacity-60"
                     placeholder="Your name"
                   />
                 </label>
@@ -140,7 +169,8 @@ export default function Contact({ profile }: { profile: Profile }) {
                     name="email"
                     type="email"
                     required
-                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)]"
+                    disabled={status === 'loading'}
+                    className="w-full rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)] disabled:opacity-60"
                     placeholder="you@brand.com"
                   />
                 </label>
@@ -149,7 +179,8 @@ export default function Contact({ profile }: { profile: Profile }) {
                 <span className="mb-1.5 block text-xs text-slate-500">Budget range</span>
                 <select
                   name="budget"
-                  className="w-full rounded-xl border border-white/[0.08] bg-[#0a0f1e] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)]"
+                  disabled={status === 'loading'}
+                  className="w-full rounded-xl border border-white/[0.08] bg-[#0a0f1e] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)] disabled:opacity-60"
                   defaultValue=""
                 >
                   <option value="" disabled>
@@ -167,16 +198,35 @@ export default function Contact({ profile }: { profile: Profile }) {
                   name="message"
                   required
                   rows={5}
-                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)]"
+                  minLength={10}
+                  disabled={status === 'loading'}
+                  className="w-full resize-none rounded-xl border border-white/[0.08] bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/45 focus:shadow-[0_0_0_3px_rgba(59,130,246,0.12)] disabled:opacity-60"
                   placeholder="Tell me about your brand, catalog, and timeline…"
                 />
               </label>
+
+              {status === 'error' && error ? (
+                <p className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {error}
+                </p>
+              ) : null}
+
               <button
                 type="submit"
-                className="btn-shimmer group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(59,130,246,0.65)] transition hover:bg-blue-500 hover:shadow-[0_10px_36px_-8px_rgba(59,130,246,0.85)]"
+                disabled={status === 'loading'}
+                className="btn-shimmer group inline-flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_8px_28px_-8px_rgba(59,130,246,0.65)] transition hover:bg-blue-500 hover:shadow-[0_10px_36px_-8px_rgba(59,130,246,0.85)] disabled:cursor-not-allowed disabled:opacity-70"
               >
-                Send inquiry
-                <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                {status === 'loading' ? (
+                  <>
+                    Sending…
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </>
+                ) : (
+                  <>
+                    Send inquiry
+                    <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </>
+                )}
               </button>
             </form>
           )}
