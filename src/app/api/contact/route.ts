@@ -1,6 +1,10 @@
+import dns from 'node:dns';
 import { NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
+
+// Prefer IPv4 — some networks time out on Resend's IPv6 routes.
+dns.setDefaultResultOrder('ipv4first');
 
 /** Resend test sender only delivers to the email on your Resend account. */
 const RESEND_TEST_RECIPIENT = 'bota.tll2004@gmail.com';
@@ -13,30 +17,98 @@ function normalizeFrom(raw: string) {
   return `Portfolio Contact <${trimmed}>`;
 }
 
+function stripQuotes(v: string) {
+  return v.trim().replace(/^["']|["']$/g, '');
+}
+
 /** Safe status check — never exposes secrets. */
 export async function GET() {
   const hasKey = Boolean(process.env.RESEND_API_KEY?.trim());
-  const to = (process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT).trim();
+  const to = stripQuotes(process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT);
   return NextResponse.json({
     configured: hasKey,
     toDomain: to.includes('@') ? to.split('@')[1] : null,
   });
 }
 
+async function sendWithResend(opts: {
+  apiKey: string;
+  from: string;
+  to: string;
+  replyTo: string;
+  subject: string;
+  text: string;
+  html: string;
+}) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${opts.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: opts.from,
+        to: [opts.to],
+        reply_to: opts.replyTo,
+        subject: opts.subject,
+        text: opts.text,
+        html: opts.html,
+      }),
+      signal: controller.signal,
+    });
+
+    const payload = (await res.json().catch(() => ({}))) as {
+      id?: string;
+      message?: string;
+    };
+
+    return { ok: res.ok, status: res.status, payload };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+/** Fallback when Resend is unreachable from this network. */
+async function sendWithFormSubmit(opts: {
+  to: string;
+  name: string;
+  email: string;
+  budget: string;
+  message: string;
+  subject: string;
+}) {
+  const res = await fetch(`https://formsubmit.co/ajax/${encodeURIComponent(opts.to)}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+    },
+    body: JSON.stringify({
+      name: opts.name,
+      email: opts.email,
+      budget: opts.budget || 'Not specified',
+      message: opts.message,
+      _subject: opts.subject,
+      _template: 'table',
+      _replyto: opts.email,
+      _captcha: 'false',
+    }),
+  });
+
+  const payload = (await res.json().catch(() => ({}))) as {
+    success?: string | boolean;
+    message?: string;
+  };
+
+  return { ok: res.ok, payload };
+}
+
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.RESEND_API_KEY?.trim().replace(/^["']|["']$/g, '');
-    if (!apiKey) {
-      console.error('[contact] Missing RESEND_API_KEY');
-      return NextResponse.json(
-        {
-          error:
-            'Server is missing RESEND_API_KEY. In Vercel: Settings → Environment Variables → add RESEND_API_KEY for Production → Redeploy.',
-        },
-        { status: 503 },
-      );
-    }
-
     const body = await request.json();
     const name = String(body.name ?? '').trim();
     const email = String(body.email ?? '').trim();
@@ -56,86 +128,111 @@ export async function POST(request: Request) {
       );
     }
 
-    const to = (process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT)
-      .trim()
-      .replace(/^["']|["']$/g, '');
-    const from = normalizeFrom(
-      process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-    );
+    const to = stripQuotes(process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT);
+    const subject = `Store inquiry from ${name}${budget ? ` · ${budget}` : ''}`;
+    const text = [
+      'New portfolio inquiry',
+      '',
+      `Name: ${name}`,
+      `Email: ${email}`,
+      budget ? `Budget: ${budget}` : null,
+      '',
+      'Message:',
+      message,
+    ]
+      .filter(Boolean)
+      .join('\n');
+    const html = `
+      <div style="font-family:system-ui,sans-serif;line-height:1.55;color:#0f172a">
+        <h2 style="margin:0 0 12px">New portfolio inquiry</h2>
+        <p style="margin:0 0 8px"><strong>Name:</strong> ${escapeHtml(name)}</p>
+        <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(email)}</p>
+        ${budget ? `<p style="margin:0 0 8px"><strong>Budget:</strong> ${escapeHtml(budget)}</p>` : ''}
+        <p style="margin:16px 0 8px"><strong>Message:</strong></p>
+        <p style="white-space:pre-wrap;margin:0">${escapeHtml(message)}</p>
+      </div>
+    `;
 
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from,
-        to: [to],
-        reply_to: email,
-        subject: `Store inquiry from ${name}${budget ? ` · ${budget}` : ''}`,
-        text: [
-          'New portfolio inquiry',
-          '',
-          `Name: ${name}`,
-          `Email: ${email}`,
-          budget ? `Budget: ${budget}` : null,
-          '',
-          'Message:',
-          message,
-        ]
-          .filter(Boolean)
-          .join('\n'),
-        html: `
-          <div style="font-family:system-ui,sans-serif;line-height:1.55;color:#0f172a">
-            <h2 style="margin:0 0 12px">New portfolio inquiry</h2>
-            <p style="margin:0 0 8px"><strong>Name:</strong> ${escapeHtml(name)}</p>
-            <p style="margin:0 0 8px"><strong>Email:</strong> ${escapeHtml(email)}</p>
-            ${budget ? `<p style="margin:0 0 8px"><strong>Budget:</strong> ${escapeHtml(budget)}</p>` : ''}
-            <p style="margin:16px 0 8px"><strong>Message:</strong></p>
-            <p style="white-space:pre-wrap;margin:0">${escapeHtml(message)}</p>
-          </div>
-        `,
-      }),
-    });
+    const apiKey = stripQuotes(process.env.RESEND_API_KEY || '');
 
-    const payload = (await res.json().catch(() => ({}))) as {
-      id?: string;
-      message?: string;
-      name?: string;
-    };
+    // 1) Prefer Resend when configured
+    if (apiKey) {
+      try {
+        const from = normalizeFrom(
+          process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
+        );
+        const result = await sendWithResend({
+          apiKey,
+          from,
+          to,
+          replyTo: email,
+          subject,
+          text,
+          html,
+        });
 
-    if (!res.ok) {
-      console.error('[contact] Resend API error:', res.status, payload);
+        if (result.ok) {
+          console.info('[contact] Sent via Resend', { id: result.payload.id, to });
+          return NextResponse.json({ ok: true, provider: 'resend', id: result.payload.id });
+        }
 
-      if (res.status === 403) {
+        if (result.status === 403) {
+          return NextResponse.json(
+            {
+              error: `Resend only delivers to ${RESEND_TEST_RECIPIENT} until you verify a domain. Set CONTACT_TO_EMAIL to that address.`,
+            },
+            { status: 502 },
+          );
+        }
+
+        console.error('[contact] Resend rejected:', result.status, result.payload);
+        // Fall through to FormSubmit for transient/provider issues
+      } catch (err) {
+        console.error('[contact] Resend unreachable, falling back:', err);
+      }
+    } else {
+      console.warn('[contact] RESEND_API_KEY missing — using FormSubmit fallback');
+    }
+
+    // 2) Fallback so the form still works without Resend / when network blocks Resend
+    try {
+      const fallback = await sendWithFormSubmit({
+        to,
+        name,
+        email,
+        budget,
+        message,
+        subject,
+      });
+
+      if (!fallback.ok) {
+        console.error('[contact] FormSubmit failed:', fallback.payload);
         return NextResponse.json(
           {
-            error: `Resend only delivers to ${RESEND_TEST_RECIPIENT} until you verify a domain. Set CONTACT_TO_EMAIL to that address in Vercel.`,
+            error:
+              fallback.payload.message ||
+              'Could not send your message. Activate FormSubmit for this inbox (check email for the activation link) or fix Resend on Vercel.',
           },
           { status: 502 },
         );
       }
 
+      console.info('[contact] Sent via FormSubmit', { to });
+      return NextResponse.json({ ok: true, provider: 'formsubmit' });
+    } catch (err) {
+      console.error('[contact] FormSubmit unreachable:', err);
       return NextResponse.json(
         {
           error:
-            payload.message ||
-            `Resend rejected the email (HTTP ${res.status}). Check your API key and CONTACT_TO_EMAIL.`,
+            'Could not reach any email provider from this server. On Vercel, set RESEND_API_KEY and redeploy. Locally, your network may be blocking outbound email APIs.',
         },
-        { status: 502 },
+        { status: 500 },
       );
     }
-
-    console.info('[contact] Sent inquiry', { id: payload.id, to });
-    return NextResponse.json({ ok: true, id: payload.id });
   } catch (err) {
     console.error('[contact] Unexpected error:', err);
     return NextResponse.json(
-      {
-        error:
-          'Could not reach Resend. Check your network / server logs, then try again.',
-      },
+      { error: 'Something went wrong. Please try again later.' },
       { status: 500 },
     );
   }
