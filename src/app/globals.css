@@ -246,6 +246,87 @@ body {
   50% { box-shadow: 0 0 0 8px rgba(59, 130, 246, 0); }
 }
 
+@keyframes glass-float-a {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(18px, -24px) rotate(4deg); }
+  66% { transform: translate(-12px, 16px) rotate(-3deg); }
+}
+
+@keyframes glass-float-b {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-20px, 28px) rotate(-5deg); }
+}
+
+@keyframes glass-float-c {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(14px, -18px) scale(1.06); }
+}
+
+@keyframes glass-float-d {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  40% { transform: translate(10px, 22px) rotate(6deg); }
+  80% { transform: translate(-16px, -8px) rotate(-2deg); }
+}
+
+.brand-glass-mark__icon {
+  filter:
+    drop-shadow(0 0 18px rgba(34, 211, 238, 0.35))
+    drop-shadow(0 0 40px rgba(59, 130, 246, 0.18));
+}
+
+.brand-promo__frame {
+  isolation: isolate;
+}
+
+.brand-promo__halo {
+  background:
+    radial-gradient(ellipse 55% 45% at 50% 42%, rgba(34, 211, 238, 0.22), transparent 68%),
+    radial-gradient(ellipse 70% 60% at 50% 50%, rgba(59, 130, 246, 0.12), transparent 72%);
+  filter: blur(28px);
+  transform: scale(1.05);
+}
+
+.brand-promo__shine-wrap {
+  position: relative;
+  overflow: hidden;
+}
+
+.brand-promo__shine-wrap::after {
+  content: "";
+  position: absolute;
+  inset: -40% -60%;
+  z-index: 2;
+  background: linear-gradient(
+    105deg,
+    transparent 38%,
+    rgba(255, 255, 255, 0.14) 48%,
+    rgba(34, 211, 238, 0.22) 52%,
+    transparent 62%
+  );
+  transform: translateX(-120%) rotate(8deg);
+  animation: brand-shine 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.brand-promo__image {
+  filter:
+    drop-shadow(0 0 24px rgba(34, 211, 238, 0.45))
+    drop-shadow(0 0 60px rgba(59, 130, 246, 0.25))
+    drop-shadow(0 0 100px rgba(34, 211, 238, 0.12));
+}
+
+@keyframes brand-shine {
+  0%, 100% { transform: translateX(-120%) rotate(8deg); opacity: 0; }
+  12% { opacity: 1; }
+  45% { transform: translateX(120%) rotate(8deg); opacity: 1; }
+  55%, 100% { transform: translateX(120%) rotate(8deg); opacity: 0; }
+}
+
+.animate-glass-float-a { animation: glass-float-a 28s ease-in-out infinite; }
+.animate-glass-float-b { animation: glass-float-b 34s ease-in-out infinite; }
+.animate-glass-float-c { animation: glass-float-c 38s ease-in-out infinite; }
+.animate-glass-float-d { animation: glass-float-d 32s ease-in-out infinite; }
+
 .animate-drift { animation: drift 22s ease-in-out infinite; }
 .animate-drift-reverse { animation: drift-reverse 26s ease-in-out infinite; }
 .animate-breathe { animation: breathe 10s ease-in-out infinite; }
@@ -256,6 +337,11 @@ body {
   .animate-drift-reverse,
   .animate-breathe,
   .animate-pulse-dot,
+  .animate-glass-float-a,
+  .animate-glass-float-b,
+  .animate-glass-float-c,
+  .animate-glass-float-d,
+  .brand-promo__shine-wrap::after,
   .marquee-track {
     animation: none;
   }

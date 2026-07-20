@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { BrandGlassMarks } from '@/components/background/BrandGlassMarks';
 
 export function AmbientBackground() {
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -37,6 +38,8 @@ export function AmbientBackground() {
       <div className="absolute inset-x-0 top-0 h-[55vh] bg-gradient-to-b from-blue-950/25 via-transparent to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_55%_at_50%_-5%,transparent_0%,#050816_78%)]" />
       <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#050816]" />
+
+      <BrandGlassMarks />
     </div>
   );
 }

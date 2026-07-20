@@ -2,6 +2,7 @@ import NavBar from '@/components/layout/NavBar';
 import Footer from '@/components/layout/Footer';
 import Hero from '@/components/sections/Hero';
 import About from '@/components/sections/About';
+import BrandPromo from '@/components/sections/BrandPromo';
 import Services from '@/components/sections/Services';
 import Skills from '@/components/sections/Skills';
 import Projects from '@/components/sections/Projects';
@@ -27,6 +28,7 @@ export default function HomePage() {
       <main>
         <Hero profile={profile} />
         <About profile={profile} />
+        <BrandPromo />
         <Services services={services} />
         <Skills skills={skills} />
         <Projects commerce={commerceProjects} systems={systemsProjects} />
