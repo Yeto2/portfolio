@@ -38,13 +38,13 @@ export default function Contact({ profile }: { profile: Profile }) {
           email: data.get('email'),
           budget: data.get('budget'),
           message: data.get('message'),
-          company: data.get('company'), // honeypot
+          _gotcha: data.get('_gotcha'), // honeypot
         }),
       });
 
-      const payload = (await res.json().catch(() => ({}))) as { error?: string };
+      const payload = (await res.json().catch(() => ({}))) as { error?: string; ok?: boolean };
 
-      if (!res.ok) {
+      if (!res.ok || !payload.ok) {
         setStatus('error');
         setError(payload.error || 'Could not send your message. Please try again.');
         return;
@@ -145,7 +145,7 @@ export default function Contact({ profile }: { profile: Profile }) {
               {/* Honeypot — hidden from real users */}
               <input
                 type="text"
-                name="company"
+                name="_gotcha"
                 tabIndex={-1}
                 autoComplete="off"
                 className="absolute left-[-9999px] h-0 w-0 opacity-0"
