@@ -34,11 +34,10 @@ export default function Contact({ profile }: { profile: Profile }) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: data.get('name'),
-          email: data.get('email'),
-          budget: data.get('budget'),
-          message: data.get('message'),
-          _gotcha: data.get('_gotcha'), // honeypot
+          name: String(data.get('name') ?? '').trim(),
+          email: String(data.get('email') ?? '').trim(),
+          budget: String(data.get('budget') ?? '').trim(),
+          message: String(data.get('message') ?? '').trim(),
         }),
       });
 
@@ -46,7 +45,10 @@ export default function Contact({ profile }: { profile: Profile }) {
 
       if (!res.ok || !payload.ok) {
         setStatus('error');
-        setError(payload.error || 'Could not send your message. Please try again.');
+        setError(
+          payload.error ||
+            `Could not send (HTTP ${res.status}). If this persists, the server env vars are missing.`,
+        );
         return;
       }
 
@@ -141,17 +143,7 @@ export default function Contact({ profile }: { profile: Profile }) {
               </button>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Honeypot — hidden from real users */}
-              <input
-                type="text"
-                name="_gotcha"
-                tabIndex={-1}
-                autoComplete="off"
-                className="absolute left-[-9999px] h-0 w-0 opacity-0"
-                aria-hidden
-              />
-
+            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="block">
                   <span className="mb-1.5 block text-xs text-slate-500">Name</span>

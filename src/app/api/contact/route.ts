@@ -8,20 +8,30 @@ const RESEND_TEST_RECIPIENT = 'bota.tll2004@gmail.com';
 const emailOk = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 
 function normalizeFrom(raw: string) {
-  const trimmed = raw.trim();
+  const trimmed = raw.trim().replace(/^["']|["']$/g, '');
   if (trimmed.includes('<') && trimmed.includes('>')) return trimmed;
   return `Portfolio Contact <${trimmed}>`;
 }
 
+/** Safe status check — never exposes secrets. */
+export async function GET() {
+  const hasKey = Boolean(process.env.RESEND_API_KEY?.trim());
+  const to = (process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT).trim();
+  return NextResponse.json({
+    configured: hasKey,
+    toDomain: to.includes('@') ? to.split('@')[1] : null,
+  });
+}
+
 export async function POST(request: Request) {
   try {
-    const apiKey = process.env.RESEND_API_KEY?.trim();
+    const apiKey = process.env.RESEND_API_KEY?.trim().replace(/^["']|["']$/g, '');
     if (!apiKey) {
       console.error('[contact] Missing RESEND_API_KEY');
       return NextResponse.json(
         {
           error:
-            'Contact form is not configured on the server. Add RESEND_API_KEY in Vercel, then redeploy.',
+            'Server is missing RESEND_API_KEY. In Vercel: Settings → Environment Variables → add RESEND_API_KEY for Production → Redeploy.',
         },
         { status: 503 },
       );
@@ -32,15 +42,6 @@ export async function POST(request: Request) {
     const email = String(body.email ?? '').trim();
     const message = String(body.message ?? '').trim();
     const budget = String(body.budget ?? '').trim();
-    const honey = String(body._gotcha ?? '').trim();
-
-    if (honey) {
-      console.warn('[contact] Honeypot triggered — ignored');
-      return NextResponse.json(
-        { error: 'Could not send your message. Please try again.' },
-        { status: 400 },
-      );
-    }
 
     if (!name || name.length > 120) {
       return NextResponse.json({ error: 'Please enter a valid name.' }, { status: 400 });
@@ -55,7 +56,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const to = (process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT).trim();
+    const to = (process.env.CONTACT_TO_EMAIL || RESEND_TEST_RECIPIENT)
+      .trim()
+      .replace(/^["']|["']$/g, '');
     const from = normalizeFrom(
       process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
     );
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       if (res.status === 403) {
         return NextResponse.json(
           {
-            error: `Resend blocked delivery. Set CONTACT_TO_EMAIL to ${RESEND_TEST_RECIPIENT} in Vercel until you verify a domain.`,
+            error: `Resend only delivers to ${RESEND_TEST_RECIPIENT} until you verify a domain. Set CONTACT_TO_EMAIL to that address in Vercel.`,
           },
           { status: 502 },
         );
@@ -118,7 +121,7 @@ export async function POST(request: Request) {
         {
           error:
             payload.message ||
-            'Could not send your message. Please email yessemna1337@gmail.com directly.',
+            `Resend rejected the email (HTTP ${res.status}). Check your API key and CONTACT_TO_EMAIL.`,
         },
         { status: 502 },
       );
@@ -129,7 +132,10 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error('[contact] Unexpected error:', err);
     return NextResponse.json(
-      { error: 'Something went wrong. Please try again later.' },
+      {
+        error:
+          'Could not reach Resend. Check your network / server logs, then try again.',
+      },
       { status: 500 },
     );
   }
